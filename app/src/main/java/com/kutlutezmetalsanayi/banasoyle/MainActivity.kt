@@ -55,6 +55,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -343,7 +344,39 @@ private fun BanaSoyleApp(
                 }
             }
 
+            if (reminders.isNotEmpty()) {
+                Spacer(Modifier.height(10.dp))
+                LazyColumn(
+                    modifier = Modifier.fillMaxWidth().heightIn(max = 220.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    items(reminders) { reminder ->
+                        ReminderListItem(reminder)
+                    }
+                }
+            }
+
             Spacer(Modifier.height(20.dp))
+        }
+    }
+}
+
+@Composable
+private fun ReminderListItem(reminder: Reminder) {
+    val formatter = DateTimeFormatter.ofPattern("d MMMM • HH:mm", Locale("tr", "TR"))
+    val event = java.time.Instant.ofEpochMilli(reminder.triggerAtMillis).atZone(java.time.ZoneId.systemDefault()).toLocalDateTime()
+    Card(
+        Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = Color(0x18FFFFFF))
+    ) {
+        Row(Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
+            Icon(Icons.Default.CalendarToday, contentDescription = null, tint = Color(0xFFD8CFFF), modifier = Modifier.size(22.dp))
+            Spacer(Modifier.width(12.dp))
+            Column(Modifier.weight(1f)) {
+                Text(reminder.title, color = Color.White, fontWeight = FontWeight.SemiBold, maxLines = 1)
+                Text(event.format(formatter), color = Color(0xFFBDB7D5), fontSize = 12.sp)
+            }
         }
     }
 }

@@ -25,6 +25,7 @@ import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.TaskAlt
 import androidx.compose.material3.*
+import android.widget.Toast
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -56,6 +57,7 @@ class MainActivity : ComponentActivity() {
     ) { granted ->
         disclosurePending = false
         if (granted) startListening()
+        else Toast.makeText(this, "Mikrofon izni gerekli.", Toast.LENGTH_SHORT).show()
     }
 
     private val notificationPermission = registerForActivityResult(

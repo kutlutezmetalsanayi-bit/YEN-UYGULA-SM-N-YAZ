@@ -93,34 +93,7 @@ private object ReminderStore {
     }
 }
 
-import android.Manifest
-import android.app.NotificationChannel
-import android.app.NotificationManager
-import android.content.Intent
-import android.content.pm.PackageManager
-import android.os.Bundle
-import android.speech.RecognitionListener
-import android.speech.RecognizerIntent
-import android.speech.SpeechRecognizer
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Alarm
-import androidx.compose.material.icons.filled.CalendarToday
-import androidx.compose.material.icons.filled.Mic
-import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.TaskAlt
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material3.*
 
 private val Purple = Color(0xFF6C3BFF)
 private val LightPurple = Color(0xFFF2EEFF)

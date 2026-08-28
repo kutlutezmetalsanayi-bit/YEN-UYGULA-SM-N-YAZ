@@ -234,25 +234,29 @@ private fun BanaSoyleApp(
 
 @Composable
 private fun VoiceHero(isListening: Boolean, onClick: () -> Unit) {
-    Card(
+    Box(
         Modifier.size(380.dp).clickable(onClick = onClick),
-        shape = RoundedCornerShape(28.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White)
+        contentAlignment = Alignment.Center
     ) {
-        Column(Modifier.fillMaxSize().padding(vertical = 38.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-            Box(Modifier.size(230.dp).background(LightPurple, CircleShape), contentAlignment = Alignment.Center) {
-                Box(Modifier.size(170.dp).background(Purple, CircleShape), contentAlignment = Alignment.Center) {
-                    Icon(Icons.Default.Mic, contentDescription = "Mikrofon", tint = Color.White, modifier = Modifier.size(70.dp))
+        Box(
+            Modifier.size(330.dp).background(LightPurple, CircleShape),
+            contentAlignment = Alignment.Center
+        ) {
+            Box(
+                Modifier.size(300.dp).background(Purple, CircleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Icon(Icons.Default.Mic, contentDescription = "Mikrofon", tint = Color.White, modifier = Modifier.size(86.dp))
+                    Spacer(Modifier.height(10.dp))
+                    Text(
+                        if (isListening) "Dinliyorum..." else "Bas, Konuş",
+                        color = Color.White,
+                        fontSize = 25.sp,
+                        fontWeight = FontWeight.Bold
+                    )
                 }
             }
-            Spacer(Modifier.height(18.dp))
-            Text(if (isListening) "Dinliyorum..." else "Konuşmak için dokun", color = Purple, fontSize = 20.sp, fontWeight = FontWeight.Bold)
-            Spacer(Modifier.height(6.dp))
-            Text(
-                if (isListening) "Seni dinliyorum, bitirdiğinde otomatik anlayacağım."
-                else "“Yarın saat 11'de dişçim var” demen yeterli.",
-                color = Color(0xFF726D79), fontSize = 14.sp
-            )
         }
     }
 }

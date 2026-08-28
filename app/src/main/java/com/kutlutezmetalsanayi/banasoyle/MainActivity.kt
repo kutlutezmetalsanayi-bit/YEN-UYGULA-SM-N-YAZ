@@ -119,7 +119,19 @@ class MainActivity : ComponentActivity() {
             override fun onEndOfSpeech() {}
             override fun onPartialResults(partialResults: Bundle?) {}
             override fun onEvent(eventType: Int, params: Bundle?) {}
-            override fun onError(error: Int) { speechResultListener?.invoke("") }
+            override fun onError(error: Int) {
+                val message = when (error) {
+                    SpeechRecognizer.ERROR_AUDIO -> "Mikrofon ses akışında sorun oluştu."
+                    SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS -> "Mikrofon izni verilmedi."
+                    SpeechRecognizer.ERROR_NETWORK, SpeechRecognizer.ERROR_NETWORK_TIMEOUT -> "Konuşma tanıma servisine ulaşılamadı. İnternet bağlantısını kontrol edin."
+                    SpeechRecognizer.ERROR_NO_MATCH -> "Söylediğinizi anlayamadım. Biraz daha net tekrar deneyin."
+                    SpeechRecognizer.ERROR_RECOGNIZER_BUSY -> "Ses tanıma meşgul. Tekrar deneyin."
+                    SpeechRecognizer.ERROR_SERVER -> "Ses tanıma servisi cevap vermedi."
+                    else -> "Ses tanıma başlatılamadı (kod: $error)."
+                }
+                speechResultListener?.invoke("")
+                runOnUiThread { Toast.makeText(this@MainActivity, message, Toast.LENGTH_LONG).show() }
+            }
             override fun onResults(results: Bundle?) {
                 val text = results?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
                     ?.firstOrNull().orEmpty()
@@ -131,6 +143,8 @@ class MainActivity : ComponentActivity() {
             putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
             putExtra(RecognizerIntent.EXTRA_LANGUAGE, "tr-TR")
             putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1)
+            putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, false)
+            putExtra(RecognizerIntent.EXTRA_PREFER_OFFLINE, false)
         }
         recognizer?.startListening(intent)
     }

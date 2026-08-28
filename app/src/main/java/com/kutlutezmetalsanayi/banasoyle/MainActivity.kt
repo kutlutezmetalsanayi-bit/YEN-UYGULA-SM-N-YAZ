@@ -49,9 +49,12 @@ class MainActivity : ComponentActivity() {
         speechResultListener = listener
     }
 
+    private var disclosurePending = false
+
     private val audioPermission = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { granted ->
+        disclosurePending = false
         if (granted) startListening()
     }
 
@@ -81,7 +84,19 @@ class MainActivity : ComponentActivity() {
 
     private fun beginVoiceFlow() {
         if (checkSelfPermission(Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
-            audioPermission.launch(Manifest.permission.RECORD_AUDIO)
+            if (disclosurePending) return
+            disclosurePending = true
+            androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle("Mikrofon izni")
+                .setMessage("Bana Söyle, söylediğiniz hatırlatmayı anlayabilmek için yalnızca siz mikrofon düğmesine bastığınızda sesinizi kullanır. Ses kaydı arka planda yapılmaz.")
+                .setPositiveButton("Mikrofonu kullan") { _, _ ->
+                    audioPermission.launch(Manifest.permission.RECORD_AUDIO)
+                }
+                .setNegativeButton("Vazgeç") { _, _ ->
+                    disclosurePending = false
+                }
+                .setOnCancelListener { disclosurePending = false }
+                .show()
         } else {
             startListening()
         }

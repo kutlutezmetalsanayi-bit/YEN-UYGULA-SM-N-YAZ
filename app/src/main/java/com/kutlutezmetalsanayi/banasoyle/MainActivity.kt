@@ -1,5 +1,45 @@
 package com.kutlutezmetalsanayi.banasoyle
 
+import android.content.Context
+import org.json.JSONArray
+import org.json.JSONObject
+
+private object ReminderStore {
+    private const val PREFS = "bana_soyle_reminders"
+    private const val KEY = "items"
+
+    fun load(context: Context): List<Reminder> {
+        val raw = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getString(KEY, "[]") ?: "[]"
+        val arr = JSONArray(raw)
+        return (0 until arr.length()).mapNotNull { i ->
+            arr.optJSONObject(i)?.let { o ->
+                Reminder(
+                    o.optString("title", "Hatırlatma"),
+                    o.optString("spokenText", ""),
+                    o.optLong("triggerAtMillis", 0L),
+                    o.optLong("reminderAtMillis", 0L)
+                )
+            }
+        }.filter { it.triggerAtMillis > System.currentTimeMillis() }.sortedBy { it.triggerAtMillis }
+    }
+
+    fun add(context: Context, reminder: Reminder) {
+        val list = load(context).toMutableList()
+        list.removeAll { it.triggerAtMillis == reminder.triggerAtMillis && it.title == reminder.title }
+        list.add(reminder)
+        val arr = JSONArray()
+        list.sortedBy { it.triggerAtMillis }.forEach {
+            arr.put(JSONObject().apply {
+                put("title", it.title)
+                put("spokenText", it.spokenText)
+                put("triggerAtMillis", it.triggerAtMillis)
+                put("reminderAtMillis", it.reminderAtMillis)
+            })
+        }
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putString(KEY, arr.toString()).apply()
+    }
+}
+
 import android.Manifest
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -177,6 +217,7 @@ private fun BanaSoyleApp(
     var isListening by remember { mutableStateOf(false) }
     var transcript by remember { mutableStateOf("") }
     var parsedReminder by remember { mutableStateOf<Reminder?>(null) }
+    var reminders by remember { mutableStateOf(ReminderStore.load(context)) }
     var errorText by remember { mutableStateOf("") }
 
     val context = androidx.compose.ui.platform.LocalContext.current
@@ -202,7 +243,10 @@ private fun BanaSoyleApp(
                 } else {
                     errorText = ""
                     parsedReminder = reminder
-                    ReminderScheduler.schedule(mainActivity, reminder)
+                    if (ReminderScheduler.schedule(mainActivity, reminder)) {
+                        ReminderStore.add(mainActivity, reminder)
+                        reminders = ReminderStore.load(mainActivity)
+                    }
                 }
             }
         }
@@ -293,7 +337,7 @@ private fun BanaSoyleApp(
                     Spacer(Modifier.width(14.dp))
                     Column(Modifier.weight(1f)) {
                         Text("Yaklaşan Hatırlatmalar", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
-                        Text("Henüz hatırlatma yok.", color = Color(0xFFBDB7D5), fontSize = 13.sp)
+                        Text(if (reminders.isEmpty()) "Henüz hatırlatma yok." else "${reminders.size} yaklaşan hatırlatma", color = Color(0xFFBDB7D5), fontSize = 13.sp)
                     }
                     Text("›", color = Color.White, fontSize = 30.sp)
                 }

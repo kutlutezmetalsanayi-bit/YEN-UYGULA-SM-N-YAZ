@@ -6,7 +6,8 @@
         android:allowBackup="true"
         android:label="Bana Söyle"
         android:supportsRtl="true"
-        android:theme="@style/Theme.BanaSoyle">
+        android:theme="@android:style/Theme.Material.Light.NoActionBar">
+
         <activity
             android:name=".MainActivity"
             android:exported="true">
@@ -15,5 +16,9 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <receiver
+            android:name=".ReminderReceiver"
+            android:exported="false" />
     </application>
 </manifest>

@@ -235,14 +235,14 @@ private fun BanaSoyleApp(
 @Composable
 private fun VoiceHero(isListening: Boolean, onClick: () -> Unit) {
     Card(
-        Modifier.fillMaxWidth().clickable(onClick = onClick),
+        Modifier.size(320.dp).clickable(onClick = onClick),
         shape = RoundedCornerShape(28.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White)
     ) {
-        Column(Modifier.fillMaxWidth().padding(vertical = 28.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-            Box(Modifier.size(142.dp).background(LightPurple, CircleShape), contentAlignment = Alignment.Center) {
-                Box(Modifier.size(104.dp).background(Purple, CircleShape), contentAlignment = Alignment.Center) {
-                    Icon(Icons.Default.Mic, contentDescription = "Mikrofon", tint = Color.White, modifier = Modifier.size(44.dp))
+        Column(Modifier.fillMaxSize().padding(vertical = 38.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+            Box(Modifier.size(190.dp).background(LightPurple, CircleShape), contentAlignment = Alignment.Center) {
+                Box(Modifier.size(142.dp).background(Purple, CircleShape), contentAlignment = Alignment.Center) {
+                    Icon(Icons.Default.Mic, contentDescription = "Mikrofon", tint = Color.White, modifier = Modifier.size(58.dp))
                 }
             }
             Spacer(Modifier.height(18.dp))

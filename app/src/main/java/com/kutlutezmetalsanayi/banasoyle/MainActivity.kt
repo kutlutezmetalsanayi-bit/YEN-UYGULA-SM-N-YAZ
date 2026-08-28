@@ -235,7 +235,7 @@ private fun BanaSoyleApp(
 @Composable
 private fun VoiceHero(isListening: Boolean, onClick: () -> Unit) {
     Card(
-        Modifier.fillMaxWidth().shadow(12.dp, RoundedCornerShape(28.dp)).clickable(onClick = onClick),
+        Modifier.fillMaxWidth().clickable(onClick = onClick),
         shape = RoundedCornerShape(28.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White)
     ) {

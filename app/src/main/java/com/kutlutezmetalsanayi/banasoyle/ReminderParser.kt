@@ -15,7 +15,7 @@ object ReminderParser {
             normalized.contains("yarin") -> now.toLocalDate().plusDays(1)
             normalized.contains("bugun") -> now.toLocalDate()
             normalized.contains("ertesi gun") -> now.toLocalDate().plusDays(2)
-            else -> parseWeekday(normalized, now) ?: parseExplicitDate(normalized, now) ?: now.toLocalDate()
+            else -> parseWeekday(normalized, now) ?: parseExplicitDate(normalized, now) ?: parseRelativeDate(normalized, now) ?: now.toLocalDate()
         }
 
         val time = parseTime(normalized) ?: return null
@@ -34,12 +34,19 @@ object ReminderParser {
         )
     }
 
+    private fun parseRelativeDate(text: String, now: LocalDateTime): LocalDate? {
+        val m = Pattern.compile("\\b(\\d+)\\s*(gun|hafta)\\s*(sonra)\\b").matcher(text)
+        if (!m.find()) return null
+        val amount = m.group(1).toLong()
+        return if (m.group(2) == "hafta") now.toLocalDate().plusWeeks(amount) else now.toLocalDate().plusDays(amount)
+    }
+
     private fun parseTime(text: String): LocalTime? {
         val colon = Pattern.compile("\\b([01]?\\d|2[0-3])[:.]([0-5]\\d)\\b").matcher(text)
         if (colon.find()) return LocalTime.of(colon.group(1).toInt(), colon.group(2).toInt())
 
         val hour = Pattern.compile("\\b(saat\\s*)?([01]?\\d|2[0-3])\\s*(?:'?de|'?da|de|da|\\s|$)").matcher(text)
-        if (hour.find()) return LocalTime.of(hour.group(2).toInt(), 0)
+        if (hour.find()) {\n            var h = hour.group(2).toInt()\n            if (text.contains("aksam") || text.contains("gece")) { if (h in 1..11) h += 12 }\n            return LocalTime.of(h, 0)\n        }
 
         return null
     }
@@ -82,7 +89,7 @@ object ReminderParser {
             .replace(Regex("(?i)yarin|bugun|ertesi gun|saat\\s*\\d{1,2}([:.]\\d{2})?('de|'da|de|da)?"), "")
             .replace(Regex("(?i)\\b\\d{1,2}[./]\\d{1,2}([./]\\d{2,4})?\\b"), "")
             .replace(Regex("(?i)\\b(\\d+)\\s*(dakika|dk|saat)\\s*once\\b"), "")
-            .replace(Regex("(?i)bir saat once|yarim saat once"), "")
+            .replace(Regex("(?i)bir saat once|yarim saat once"), "")\n            .replace(Regex("(?i)\\b\\d+\\s*(gun|hafta)\\s*sonra\\b"), "")\n            .replace(Regex("(?i)\\b(sabah|ogle|aksam|gece)\\b"), "")
             .replace(Regex("\\s+"), " ")
             .trim(' ', '.', ',', '!', '?')
         return title.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale("tr", "TR")) else it.toString() }

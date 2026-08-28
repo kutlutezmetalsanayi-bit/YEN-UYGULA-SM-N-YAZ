@@ -4,12 +4,21 @@ import android.app.AlarmManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.os.Build
+import android.provider.Settings
 
 object ReminderScheduler {
-    private const val REQUEST_CODE = "BanaSoyleReminder".hashCode()
-
-    fun schedule(context: Context, reminder: Reminder) {
+    fun schedule(context: Context, reminder: Reminder): Boolean {
         val alarmManager = context.getSystemService(AlarmManager::class.java)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && !alarmManager.canScheduleExactAlarms()) {
+            val intent = Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM).apply {
+                data = android.net.Uri.parse("package:" + context.packageName)
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+            context.startActivity(intent)
+            return false
+        }
+
         val intent = Intent(context, ReminderReceiver::class.java).apply {
             putExtra("title", reminder.title)
             putExtra("text", reminder.spokenText)
@@ -21,18 +30,11 @@ object ReminderScheduler {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
-        if (android.os.Build.VERSION.SDK_INT >= 23) {
-            alarmManager.setAndAllowWhileIdle(
-                AlarmManager.RTC_WAKEUP,
-                reminder.reminderAtMillis,
-                pending
-            )
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, reminder.reminderAtMillis, pending)
         } else {
-            alarmManager.set(
-                AlarmManager.RTC_WAKEUP,
-                reminder.reminderAtMillis,
-                pending
-            )
+            alarmManager.setExact(AlarmManager.RTC_WAKEUP, reminder.reminderAtMillis, pending)
         }
+        return true
     }
 }

@@ -142,6 +142,10 @@ class MainActivity : ComponentActivity() {
         )
     }
 
+    override fun onResume() {
+        super.onResume()
+    }
+
     override fun onDestroy() {
         recognizer?.destroy()
         super.onDestroy()

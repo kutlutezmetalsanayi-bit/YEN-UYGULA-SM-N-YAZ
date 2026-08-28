@@ -3,14 +3,12 @@ package com.kutlutezmetalsanayi.banasoyle
 import android.Manifest
 import android.app.NotificationChannel
 import android.app.NotificationManager
-import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.speech.RecognitionListener
 import android.speech.RecognizerIntent
 import android.speech.SpeechRecognizer
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
@@ -18,82 +16,24 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Alarm
 import androidx.compose.material.icons.filled.CalendarToday
-import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Mic
-import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
+import android.widget.Toast
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.text.font.FontWeight
-import org.json.JSONArray
-import org.json.JSONObject
 import java.time.format.DateTimeFormatter
 import java.util.Locale
-
-private object ReminderStore {
-    private const val PREFS = "bana_soyle_reminders"
-    private const val KEY = "items"
-
-    fun load(context: Context): List<Reminder> {
-        val raw = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getString(KEY, "[]") ?: "[]"
-        val arr = JSONArray(raw)
-        return (0 until arr.length()).mapNotNull { i ->
-            arr.optJSONObject(i)?.let { o ->
-                Reminder(
-                    o.optString("title", "Hatırlatma"),
-                    o.optString("spokenText", ""),
-                    o.optLong("triggerAtMillis", 0L),
-                    o.optLong("reminderAtMillis", 0L)
-                )
-            }
-        }.filter { it.triggerAtMillis > System.currentTimeMillis() }.sortedBy { it.triggerAtMillis }
-    }
-
-    fun remove(context: Context, reminder: Reminder) {
-        val list = load(context).filterNot { it.triggerAtMillis == reminder.triggerAtMillis && it.title == reminder.title }
-        save(context, list)
-    }
-
-    private fun save(context: Context, list: List<Reminder>) {
-        val arr = JSONArray()
-        list.sortedBy { it.triggerAtMillis }.forEach {
-            arr.put(JSONObject().apply {
-                put("title", it.title); put("spokenText", it.spokenText)
-                put("triggerAtMillis", it.triggerAtMillis); put("reminderAtMillis", it.reminderAtMillis)
-            })
-        }
-        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putString(KEY, arr.toString()).apply()
-    }
-
-    fun add(context: Context, reminder: Reminder) {
-        val list = load(context).toMutableList()
-        list.removeAll { it.triggerAtMillis == reminder.triggerAtMillis && it.title == reminder.title }
-        list.add(reminder)
-        val arr = JSONArray()
-        list.sortedBy { it.triggerAtMillis }.forEach {
-            arr.put(JSONObject().apply {
-                put("title", it.title)
-                put("spokenText", it.spokenText)
-                put("triggerAtMillis", it.triggerAtMillis)
-                put("reminderAtMillis", it.reminderAtMillis)
-            })
-        }
-        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putString(KEY, arr.toString()).apply()
-    }
-}
-
-import androidx.compose.material.icons.filled.TaskAlt
 
 private val Purple = Color(0xFF6C3BFF)
 private val LightPurple = Color(0xFFF2EEFF)
@@ -162,7 +102,6 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun startListening() {
-        speechResultListener?.invoke("__LISTENING__")
         if (!SpeechRecognizer.isRecognitionAvailable(this)) {
             speechResultListener?.invoke("")
             return
@@ -178,19 +117,7 @@ class MainActivity : ComponentActivity() {
             override fun onEndOfSpeech() {}
             override fun onPartialResults(partialResults: Bundle?) {}
             override fun onEvent(eventType: Int, params: Bundle?) {}
-            override fun onError(error: Int) {
-                val message = when (error) {
-                    SpeechRecognizer.ERROR_AUDIO -> "Mikrofon ses akışında sorun oluştu."
-                    SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS -> "Mikrofon izni verilmedi."
-                    SpeechRecognizer.ERROR_NETWORK, SpeechRecognizer.ERROR_NETWORK_TIMEOUT -> "Konuşma tanıma servisine ulaşılamadı. İnternet bağlantısını kontrol edin."
-                    SpeechRecognizer.ERROR_NO_MATCH -> "Söylediğinizi anlayamadım. Biraz daha net tekrar deneyin."
-                    SpeechRecognizer.ERROR_RECOGNIZER_BUSY -> "Ses tanıma meşgul. Tekrar deneyin."
-                    SpeechRecognizer.ERROR_SERVER -> "Ses tanıma servisi cevap vermedi."
-                    else -> "Ses tanıma başlatılamadı (kod: $error)."
-                }
-                speechResultListener?.invoke("")
-                runOnUiThread { Toast.makeText(this@MainActivity, message, Toast.LENGTH_LONG).show() }
-            }
+            override fun onError(error: Int) { speechResultListener?.invoke("") }
             override fun onResults(results: Bundle?) {
                 val text = results?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
                     ?.firstOrNull().orEmpty()
@@ -202,8 +129,6 @@ class MainActivity : ComponentActivity() {
             putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
             putExtra(RecognizerIntent.EXTRA_LANGUAGE, "tr-TR")
             putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1)
-            putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, false)
-            putExtra(RecognizerIntent.EXTRA_PREFER_OFFLINE, false)
         }
         recognizer?.startListening(intent)
     }
@@ -234,35 +159,29 @@ private fun BanaSoyleApp(
     var isListening by remember { mutableStateOf(false) }
     var transcript by remember { mutableStateOf("") }
     var parsedReminder by remember { mutableStateOf<Reminder?>(null) }
+    var errorText by remember { mutableStateOf("") }
+
     val context = androidx.compose.ui.platform.LocalContext.current
     val mainActivity = context as? MainActivity
-    var reminders by remember { mutableStateOf(ReminderStore.load(context)) }
-    var errorText by remember { mutableStateOf("") }
 
     DisposableEffect(mainActivity) {
         mainActivity?.setSpeechResultListener { spoken ->
-            if (spoken == "__LISTENING__") {
-                isListening = true
-                errorText = ""
-                return@setSpeechResultListener
-            }
             isListening = false
             transcript = spoken
             if (spoken.isBlank()) {
-                errorText = "Seni anlayamadım. Tekrar deneyelim."
+                errorText = "Sesini anlayamadım. Tekrar deneyelim."
                 parsedReminder = null
             } else {
                 val reminder = ReminderParser.parse(spoken)
                 if (reminder == null) {
-                    errorText = "Tarih ve saat bilgisini anlayamadım."
+                    errorText = "Tarih ve saat bilgisini net anlayamadım."
                     parsedReminder = null
-                } else {
+                } else if (ReminderScheduler.schedule(mainActivity, reminder)) {
                     errorText = ""
                     parsedReminder = reminder
-                    if (ReminderScheduler.schedule(mainActivity, reminder)) {
-                        ReminderStore.add(mainActivity, reminder)
-                        reminders = ReminderStore.load(mainActivity ?: return@setSpeechResultListener)
-                    }
+                } else {
+                    errorText = "Hatırlatma izni gerekli."
+                    parsedReminder = null
                 }
             }
         }
@@ -272,188 +191,79 @@ private fun BanaSoyleApp(
         }
     }
 
-    val bg = androidx.compose.ui.graphics.Brush.verticalGradient(
-        listOf(Color(0xFF17133F), Color(0xFF29205C), Color(0xFF17133F))
-    )
-
-    Box(Modifier.fillMaxSize().background(bg)) {
+    Box(Modifier.fillMaxSize().background(Color(0xFF17133F))) {
         Column(
             Modifier.fillMaxSize().padding(horizontal = 20.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Row(
-                Modifier.fillMaxWidth().padding(top = 18.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                IconButton(onClick = {}, modifier = Modifier.size(44.dp)) {
-                    Icon(Icons.Default.Menu, contentDescription = "Menü", tint = Color.White)
-                }
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text("Bana Söyle", color = Color.White, fontSize = 27.sp, fontWeight = FontWeight.Bold)
-                    Text("Aklına geldiğinde söyle, unutma.", color = Color(0xFFBDB7D5), fontSize = 13.sp)
-                }
-                IconButton(onClick = {}, modifier = Modifier.size(44.dp)) {
-                    Icon(Icons.Default.Settings, contentDescription = "Ayarlar", tint = Color.White)
-                }
-            }
+            Spacer(Modifier.height(22.dp))
+            Text("Bana Söyle", color = Color.White, fontSize = 27.sp, fontWeight = FontWeight.Bold)
+            Text("Aklına geldiğinde söyle, unutma.", color = Color(0xFFBDB7D5), fontSize = 13.sp)
 
             Spacer(Modifier.weight(0.12f))
-
             VoiceHero(isListening, onMicClick)
 
-            Spacer(Modifier.weight(0.18f))
-
             if (transcript.isNotBlank()) {
+                Spacer(Modifier.height(16.dp))
                 TranscriptCard(transcript)
-                Spacer(Modifier.height(10.dp))
             }
-
             parsedReminder?.let {
-                ReminderCreatedCard(it)
                 Spacer(Modifier.height(10.dp))
+                ReminderCreatedCard(it)
             }
-
             if (errorText.isNotBlank()) {
+                Spacer(Modifier.height(10.dp))
                 Card(
-                    colors = CardDefaults.cardColors(containerColor = Color(0x33FF6B6B)),
+                    Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(16.dp),
-                    modifier = Modifier.fillMaxWidth()
+                    colors = CardDefaults.cardColors(containerColor = Color(0x33FF6B6B))
                 ) {
                     Text(errorText, Modifier.padding(14.dp), color = Color(0xFFFFD0D0), fontSize = 13.sp)
                 }
-                Spacer(Modifier.height(10.dp))
             }
-
             if (transcript.isBlank() && parsedReminder == null && errorText.isBlank()) {
-                Text(
-                    "Örnek: “Yarın saat 11'de dişçim var.”",
-                    color = Color(0xFFBDB7D5),
-                    fontSize = 13.sp
-                )
+                Spacer(Modifier.height(12.dp))
+                Text("Örnek: “Yarın saat 11'de dişçim var.”", color = Color(0xFFBDB7D5), fontSize = 13.sp)
             }
-
-            Spacer(Modifier.height(18.dp))
-
-            Card(
-                Modifier.fillMaxWidth().clickable { },
-                shape = RoundedCornerShape(22.dp),
-                colors = CardDefaults.cardColors(containerColor = Color(0x22FFFFFF))
-            ) {
-                Row(
-                    Modifier.padding(horizontal = 18.dp, vertical = 16.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Box(
-                        Modifier.size(46.dp).background(Color(0x22FFFFFF), CircleShape),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(Icons.Default.Alarm, contentDescription = null, tint = Color.White)
-                    }
-                    Spacer(Modifier.width(14.dp))
-                    Column(Modifier.weight(1f)) {
-                        Text("Yaklaşan Hatırlatmalar", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
-                        Text(if (reminders.isEmpty()) "Henüz hatırlatma yok." else "${reminders.size} yaklaşan hatırlatma", color = Color(0xFFBDB7D5), fontSize = 13.sp)
-                    }
-                    Text("›", color = Color.White, fontSize = 30.sp)
-                }
-            }
-
-            if (reminders.isNotEmpty()) {
-                Spacer(Modifier.height(10.dp))
-                LazyColumn(
-                    modifier = Modifier.fillMaxWidth().heightIn(max = 220.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    items(reminders) { reminder ->
-                        ReminderListItem(reminder, onDelete = {
-                            mainActivity?.let { activity ->
-                                ReminderStore.remove(activity, reminder)
-                                reminders = ReminderStore.load(activity)
-                            }
-                        })
-                    }
-                }
-            }
-
+            Spacer(Modifier.weight(0.18f))
+            Text("Yaklaşan hatırlatmalar", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
             Spacer(Modifier.height(20.dp))
         }
     }
 }
 
 @Composable
-private fun ReminderListItem(reminder: Reminder, onDelete: () -> Unit) {
-    val formatter = DateTimeFormatter.ofPattern("d MMMM • HH:mm", Locale("tr", "TR"))
-    val event = java.time.Instant.ofEpochMilli(reminder.triggerAtMillis).atZone(java.time.ZoneId.systemDefault()).toLocalDateTime()
-    Card(
-        Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0x18FFFFFF))
-    ) {
-        Row(Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
-            Icon(Icons.Default.CalendarToday, contentDescription = null, tint = Color(0xFFD8CFFF), modifier = Modifier.size(22.dp))
-            Spacer(Modifier.width(12.dp))
-            Column(Modifier.weight(1f)) {
-                Text(reminder.title, color = Color.White, fontWeight = FontWeight.SemiBold, maxLines = 1)
-                Text(event.format(formatter), color = Color(0xFFBDB7D5), fontSize = 12.sp)
-            }
-            IconButton(onClick = onDelete) {
-                Icon(Icons.Default.Delete, contentDescription = "Sil", tint = Color(0xFFFFB7B7))
-            }
-        }
-    }
-}
-
-@Composable
 private fun VoiceHero(isListening: Boolean, onClick: () -> Unit) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Box(
-            Modifier
-                .size(310.dp)
-                .background(Color(0x332D1D73), CircleShape)
-                .padding(18.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            Box(
-                Modifier
-                    .fillMaxSize()
-                    .background(Color(0xFF6C3BFF), CircleShape)
-                    .clickable(onClick = onClick),
-                contentAlignment = Alignment.Center
-            ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Icon(
-                        Icons.Default.Mic,
-                        contentDescription = "Konuş",
-                        tint = Color.White,
-                        modifier = Modifier.size(58.dp)
-                    )
-                    Spacer(Modifier.height(16.dp))
-                    Text(
-                        if (isListening) "Dinliyorum..." else "Bas, Konuş",
-                        color = Color.White,
-                        fontSize = 28.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Spacer(Modifier.height(5.dp))
-                    Text(
-                        if (isListening) "Bitirdiğinde otomatik kaydedilir" else "Bırak, kaydedilsin",
-                        color = Color(0xFFE2DCFF),
-                        fontSize = 15.sp
-                    )
+    Card(
+        Modifier.fillMaxWidth().shadow(12.dp, RoundedCornerShape(28.dp)).clickable(onClick = onClick),
+        shape = RoundedCornerShape(28.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White)
+    ) {
+        Column(Modifier.fillMaxWidth().padding(vertical = 28.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+            Box(Modifier.size(142.dp).background(LightPurple, CircleShape), contentAlignment = Alignment.Center) {
+                Box(Modifier.size(104.dp).background(Purple, CircleShape), contentAlignment = Alignment.Center) {
+                    Icon(Icons.Default.Mic, contentDescription = "Mikrofon", tint = Color.White, modifier = Modifier.size(44.dp))
                 }
             }
+            Spacer(Modifier.height(18.dp))
+            Text(if (isListening) "Dinliyorum..." else "Konuşmak için dokun", color = Purple, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+            Spacer(Modifier.height(6.dp))
+            Text(
+                if (isListening) "Seni dinliyorum, bitirdiğinde otomatik anlayacağım."
+                else "“Yarın saat 11'de dişçim var” demen yeterli.",
+                color = Color(0xFF726D79), fontSize = 14.sp
+            )
         }
     }
 }
 
 @Composable
 private fun TranscriptCard(text: String) {
-    Card(Modifier.fillMaxWidth(), shape = RoundedCornerShape(18.dp), colors = CardDefaults.cardColors(containerColor = Color(0x22FFFFFF))) {
-        Column(Modifier.padding(16.dp)) {
-            Text("Söylediğin", color = Color(0xFFD8CFFF), fontWeight = FontWeight.Bold)
-            Spacer(Modifier.height(5.dp))
-            Text("“$text”", color = Color.White, fontSize = 15.sp)
+    Card(Modifier.fillMaxWidth(), shape = RoundedCornerShape(20.dp)) {
+        Column(Modifier.padding(18.dp)) {
+            Text("Söylediğin", color = Purple, fontWeight = FontWeight.Bold)
+            Spacer(Modifier.height(7.dp))
+            Text("“" + text + "”", color = TextDark, fontSize = 16.sp)
         }
     }
 }
@@ -463,13 +273,55 @@ private fun ReminderCreatedCard(reminder: Reminder) {
     val formatter = DateTimeFormatter.ofPattern("d MMMM yyyy • HH:mm", Locale("tr", "TR"))
     val event = java.time.Instant.ofEpochMilli(reminder.triggerAtMillis)
         .atZone(java.time.ZoneId.systemDefault()).toLocalDateTime()
+    val reminderAt = java.time.Instant.ofEpochMilli(reminder.reminderAtMillis)
+        .atZone(java.time.ZoneId.systemDefault()).toLocalDateTime()
 
-    Card(Modifier.fillMaxWidth(), shape = RoundedCornerShape(18.dp), colors = CardDefaults.cardColors(containerColor = Color(0x22FFFFFF))) {
-        Column(Modifier.padding(16.dp)) {
-            Text("✓ Hatırlatma oluşturuldu", color = Color(0xFF9FF0BC), fontWeight = FontWeight.Bold)
-            Spacer(Modifier.height(6.dp))
-            Text(reminder.title, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 18.sp)
-            Text(event.format(formatter), color = Color(0xFFBDB7D5), fontSize = 13.sp)
+    Card(Modifier.fillMaxWidth(), shape = RoundedCornerShape(22.dp), colors = CardDefaults.cardColors(containerColor = Color.White)) {
+        Column(Modifier.padding(18.dp)) {
+            Text("✓ Hatırlatma oluşturuldu", color = Color(0xFF159447), fontWeight = FontWeight.Bold, fontSize = 16.sp)
+            Spacer(Modifier.height(10.dp))
+            Text(reminder.title, color = TextDark, fontWeight = FontWeight.Bold, fontSize = 20.sp)
+            Text(event.format(formatter), color = Color(0xFF726D79), fontSize = 14.sp)
+            Spacer(Modifier.height(8.dp))
+            Text("Bildirim: " + reminderAt.format(formatter), color = Purple, fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
         }
+    }
+}
+
+@Composable
+private fun ExamplesCard() {
+    Card(Modifier.fillMaxWidth(), shape = RoundedCornerShape(20.dp), colors = CardDefaults.cardColors(containerColor = LightPurple)) {
+        Column(Modifier.padding(18.dp)) {
+            Text("Örnekler", color = Purple, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+            Spacer(Modifier.height(8.dp))
+            Text("“Yarın saat 11'de dişçim var.”", color = TextDark, fontSize = 14.sp)
+            Text("“Pazartesi 9'da Ahmet'e teklif göndereceğim.”", color = TextDark, fontSize = 14.sp)
+            Text("“3 Eylül saat 14'te arabayı servise götüreceğim.”", color = TextDark, fontSize = 14.sp)
+        }
+    }
+}
+
+@Composable
+private fun InfoCard(number: String, title: String, body: String) {
+    Card(Modifier.fillMaxWidth(), shape = RoundedCornerShape(18.dp), colors = CardDefaults.cardColors(containerColor = Color.White)) {
+        Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+            Box(Modifier.size(38.dp).background(LightPurple, CircleShape), contentAlignment = Alignment.Center) {
+                Text(number, color = Purple, fontWeight = FontWeight.Bold)
+            }
+            Spacer(Modifier.width(12.dp))
+            Column {
+                Text(title, color = TextDark, fontWeight = FontWeight.Bold)
+                Text(body, color = Color(0xFF726D79), fontSize = 13.sp)
+            }
+        }
+    }
+}
+
+@Composable
+private fun NavItem(label: String, icon: androidx.compose.ui.graphics.vector.ImageVector, selected: Boolean) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(horizontal = 4.dp)) {
+        Icon(icon, contentDescription = label, tint = if (selected) Purple else Color(0xFF8A8490), modifier = Modifier.size(22.dp))
+        Spacer(Modifier.height(3.dp))
+        Text(label, color = if (selected) Purple else Color(0xFF8A8490), fontSize = 10.sp)
     }
 }

@@ -121,17 +121,6 @@ import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.TaskAlt
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.*
-import android.widget.Toast
-import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import java.time.format.DateTimeFormatter
-import java.util.Locale
 
 private val Purple = Color(0xFF6C3BFF)
 private val LightPurple = Color(0xFFF2EEFF)
@@ -272,11 +261,10 @@ private fun BanaSoyleApp(
     var isListening by remember { mutableStateOf(false) }
     var transcript by remember { mutableStateOf("") }
     var parsedReminder by remember { mutableStateOf<Reminder?>(null) }
-    var reminders by remember { mutableStateOf(ReminderStore.load(context)) }
-    var errorText by remember { mutableStateOf("") }
-
     val context = androidx.compose.ui.platform.LocalContext.current
     val mainActivity = context as? MainActivity
+    var reminders by remember { mutableStateOf(ReminderStore.load(context)) }
+    var errorText by remember { mutableStateOf("") }
 
     DisposableEffect(mainActivity) {
         mainActivity?.setSpeechResultListener { spoken ->
@@ -406,8 +394,10 @@ private fun BanaSoyleApp(
                 ) {
                     items(reminders) { reminder ->
                         ReminderListItem(reminder, onDelete = {
-                            ReminderStore.remove(mainActivity ?: return@items, reminder)
-                            reminders = ReminderStore.load(mainActivity)
+                            mainActivity?.let { activity ->
+                                ReminderStore.remove(activity, reminder)
+                                reminders = ReminderStore.load(activity)
+                            }
                         })
                     }
                 }

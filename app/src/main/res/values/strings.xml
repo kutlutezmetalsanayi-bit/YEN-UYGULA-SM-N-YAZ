@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">Bana Söyle</string>
+    <string name="voice_disclosure_title">Mikrofon izni</string>
+    <string name="voice_disclosure_message">Bana Söyle, söylediğiniz hatırlatmayı anlayabilmek için yalnızca siz mikrofon düğmesine bastığınızda sesinizi kullanır. Ses kaydı arka planda yapılmaz. Devam etmek için izin verin.</string>
+    <string name="voice_disclosure_accept">Mikrofonu kullan</string>
+    <string name="voice_disclosure_cancel">Vazgeç</string>
+</resources>

@@ -23,6 +23,22 @@ private object ReminderStore {
         }.filter { it.triggerAtMillis > System.currentTimeMillis() }.sortedBy { it.triggerAtMillis }
     }
 
+    fun remove(context: Context, reminder: Reminder) {
+        val list = load(context).filterNot { it.triggerAtMillis == reminder.triggerAtMillis && it.title == reminder.title }
+        save(context, list)
+    }
+
+    private fun save(context: Context, list: List<Reminder>) {
+        val arr = JSONArray()
+        list.sortedBy { it.triggerAtMillis }.forEach {
+            arr.put(JSONObject().apply {
+                put("title", it.title); put("spokenText", it.spokenText)
+                put("triggerAtMillis", it.triggerAtMillis); put("reminderAtMillis", it.reminderAtMillis)
+            })
+        }
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putString(KEY, arr.toString()).apply()
+    }
+
     fun add(context: Context, reminder: Reminder) {
         val list = load(context).toMutableList()
         list.removeAll { it.triggerAtMillis == reminder.triggerAtMillis && it.title == reminder.title }
@@ -66,6 +82,7 @@ import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.TaskAlt
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.*
 import android.widget.Toast
 import androidx.compose.runtime.*
@@ -351,7 +368,10 @@ private fun BanaSoyleApp(
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     items(reminders) { reminder ->
-                        ReminderListItem(reminder)
+                        ReminderListItem(reminder, onDelete = {
+                            ReminderStore.remove(mainActivity, reminder)
+                            reminders = ReminderStore.load(mainActivity)
+                        })
                     }
                 }
             }
@@ -362,7 +382,7 @@ private fun BanaSoyleApp(
 }
 
 @Composable
-private fun ReminderListItem(reminder: Reminder) {
+private fun ReminderListItem(reminder: Reminder, onDelete: () -> Unit) {
     val formatter = DateTimeFormatter.ofPattern("d MMMM • HH:mm", Locale("tr", "TR"))
     val event = java.time.Instant.ofEpochMilli(reminder.triggerAtMillis).atZone(java.time.ZoneId.systemDefault()).toLocalDateTime()
     Card(
@@ -376,6 +396,9 @@ private fun ReminderListItem(reminder: Reminder) {
             Column(Modifier.weight(1f)) {
                 Text(reminder.title, color = Color.White, fontWeight = FontWeight.SemiBold, maxLines = 1)
                 Text(event.format(formatter), color = Color(0xFFBDB7D5), fontSize = 12.sp)
+            }
+            IconButton(onClick = onDelete) {
+                Icon(Icons.Default.Delete, contentDescription = "Sil", tint = Color(0xFFFFB7B7))
             }
         }
     }

@@ -105,6 +105,7 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun startListening() {
+        speechResultListener?.invoke("__LISTENING__")
         if (!SpeechRecognizer.isRecognitionAvailable(this)) {
             speechResultListener?.invoke("")
             return
@@ -183,6 +184,11 @@ private fun BanaSoyleApp(
 
     DisposableEffect(mainActivity) {
         mainActivity?.setSpeechResultListener { spoken ->
+            if (spoken == "__LISTENING__") {
+                isListening = true
+                errorText = ""
+                return@setSpeechResultListener
+            }
             isListening = false
             transcript = spoken
             if (spoken.isBlank()) {

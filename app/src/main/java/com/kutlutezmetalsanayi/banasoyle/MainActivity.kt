@@ -1,8 +1,45 @@
 package com.kutlutezmetalsanayi.banasoyle
 
+import android.Manifest
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.content.Context
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.os.Bundle
+import android.speech.RecognitionListener
+import android.speech.RecognizerIntent
+import android.speech.SpeechRecognizer
+import android.widget.Toast
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Alarm
+import androidx.compose.material.icons.filled.CalendarToday
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Mic
+import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.text.font.FontWeight
 import org.json.JSONArray
 import org.json.JSONObject
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 
 private object ReminderStore {
     private const val PREFS = "bana_soyle_reminders"
@@ -263,7 +300,7 @@ private fun BanaSoyleApp(
                     parsedReminder = reminder
                     if (ReminderScheduler.schedule(mainActivity, reminder)) {
                         ReminderStore.add(mainActivity, reminder)
-                        reminders = ReminderStore.load(mainActivity)
+                        reminders = ReminderStore.load(mainActivity ?: return@setSpeechResultListener)
                     }
                 }
             }
@@ -369,7 +406,7 @@ private fun BanaSoyleApp(
                 ) {
                     items(reminders) { reminder ->
                         ReminderListItem(reminder, onDelete = {
-                            ReminderStore.remove(mainActivity, reminder)
+                            ReminderStore.remove(mainActivity ?: return@items, reminder)
                             reminders = ReminderStore.load(mainActivity)
                         })
                     }

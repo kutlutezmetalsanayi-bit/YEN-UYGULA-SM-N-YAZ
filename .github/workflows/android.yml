@@ -5,6 +5,9 @@ on:
     branches: [ main ]
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -22,3 +25,11 @@ jobs:
         with:
           name: bana-soyle-debug-apk
           path: app/build/outputs/apk/debug/*.apk
+
+      - name: GitHub Release APK
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: "debug-${{ github.run_number }}"
+          name: "Bana Söyle APK #${{ github.run_number }}"
+          prerelease: true
+          files: app/build/outputs/apk/debug/*.apk

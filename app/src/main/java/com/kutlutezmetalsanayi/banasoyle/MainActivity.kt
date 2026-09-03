@@ -169,7 +169,7 @@ private fun BanaSoyleApp(
     var transcript by remember { mutableStateOf("") }
     var parsedReminder by remember { mutableStateOf<Reminder?>(null) }
     var errorText by remember { mutableStateOf("") }
-    var audioLevel by remember { mutableStateOf(0f) }
+    var audioLevel by remember { mutableStateOf(0f) }\n    var reminders by remember { mutableStateOf(ReminderStore.load(context)) }
 
     val context = androidx.compose.ui.platform.LocalContext.current
     val mainActivity = context as? MainActivity
@@ -189,7 +189,7 @@ private fun BanaSoyleApp(
                     parsedReminder = null
                 } else if (ReminderScheduler.schedule(mainActivity, reminder)) {
                     errorText = ""
-                    parsedReminder = reminder
+                    ReminderStore.save(mainActivity, reminder)\n                    reminders = ReminderStore.load(mainActivity)\n                    parsedReminder = reminder
                 } else {
                     errorText = "Hatırlatma izni gerekli."
                     parsedReminder = null
@@ -277,7 +277,7 @@ private fun VoiceHero(isListening: Boolean, audioLevel: Float, onClick: () -> Un
                         scaleX = 1f + animatedLevel * 0.08f
                         scaleY = 1f + animatedLevel * 0.08f
                     }
-                    .background(Purple, CircleShape),
+                    .background(if (isListening) Color(0xFFFFB300) else Purple, CircleShape),
                 contentAlignment = Alignment.Center
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -289,11 +289,36 @@ private fun VoiceHero(isListening: Boolean, audioLevel: Float, onClick: () -> Un
                     )
                     Spacer(Modifier.height(8.dp))
                     Text(
-                        if (isListening) "Konuş..." else "Bas, Konuş",
+                        if (isListening) "Konuşun..." else "Konuşmak için dokun",
                         color = Color.White,
                         fontSize = 22.sp,
                         fontWeight = FontWeight.Bold
                     )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun UpcomingRemindersCard(reminders: List<Reminder>) {
+    val formatter = DateTimeFormatter.ofPattern("d MMM • HH:mm", Locale("tr", "TR"))
+    Card(
+        Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(18.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White)
+    ) {
+        Column(Modifier.padding(14.dp)) {
+            Text("Yaklaşan hatırlatmalar", color = Purple, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+            Spacer(Modifier.height(8.dp))
+            reminders.take(3).forEach { reminder ->
+                val time = java.time.Instant.ofEpochMilli(reminder.reminderAtMillis)
+                    .atZone(java.time.ZoneId.systemDefault()).toLocalDateTime()
+                Row(Modifier.fillMaxWidth().padding(vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Default.Alarm, contentDescription = null, tint = Purple, modifier = Modifier.size(20.dp))
+                    Spacer(Modifier.width(10.dp))
+                    Text(reminder.title, Modifier.weight(1f), color = TextDark, fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
+                    Text(time.format(formatter), color = Color(0xFF726D79), fontSize = 12.sp)
                 }
             }
         }

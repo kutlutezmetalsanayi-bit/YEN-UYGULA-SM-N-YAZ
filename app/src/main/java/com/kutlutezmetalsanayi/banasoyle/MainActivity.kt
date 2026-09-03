@@ -15,6 +15,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -42,9 +43,14 @@ private val TextDark = Color(0xFF1E1B24)
 class MainActivity : ComponentActivity() {
     private var recognizer: SpeechRecognizer? = null
     private var speechResultListener: ((String) -> Unit)? = null
+    private var audioLevelListener: ((Float) -> Unit)? = null
 
     fun setSpeechResultListener(listener: ((String) -> Unit)?) {
         speechResultListener = listener
+    }
+
+    fun setAudioLevelListener(listener: ((Float) -> Unit)?) {
+        audioLevelListener = listener
     }
 
     private var disclosurePending = false
@@ -112,7 +118,10 @@ class MainActivity : ComponentActivity() {
         recognizer?.setRecognitionListener(object : RecognitionListener {
             override fun onReadyForSpeech(params: Bundle?) {}
             override fun onBeginningOfSpeech() {}
-            override fun onRmsChanged(rmsdB: Float) {}
+            override fun onRmsChanged(rmsdB: Float) {
+                val normalized = ((rmsdB + 2f) / 12f).coerceIn(0f, 1f)
+                audioLevelListener?.invoke(normalized)
+            }
             override fun onBufferReceived(buffer: ByteArray?) {}
             override fun onEndOfSpeech() {}
             override fun onPartialResults(partialResults: Bundle?) {}
@@ -160,6 +169,7 @@ private fun BanaSoyleApp(
     var transcript by remember { mutableStateOf("") }
     var parsedReminder by remember { mutableStateOf<Reminder?>(null) }
     var errorText by remember { mutableStateOf("") }
+    var audioLevel by remember { mutableStateOf(0f) }
 
     val context = androidx.compose.ui.platform.LocalContext.current
     val mainActivity = context as? MainActivity
@@ -167,6 +177,7 @@ private fun BanaSoyleApp(
     DisposableEffect(mainActivity) {
         mainActivity?.setSpeechResultListener { spoken ->
             isListening = false
+            audioLevel = 0f
             transcript = spoken
             if (spoken.isBlank()) {
                 errorText = "Sesini anlayamadım. Tekrar deneyelim."
@@ -185,8 +196,10 @@ private fun BanaSoyleApp(
                 }
             }
         }
+        mainActivity?.setAudioLevelListener { level -> audioLevel = level }
         onDispose {
             mainActivity?.setSpeechResultListener(null)
+            mainActivity?.setAudioLevelListener(null)
             onDestroyRecognizer()
         }
     }
@@ -201,7 +214,7 @@ private fun BanaSoyleApp(
             Text("Aklına geldiğinde söyle, unutma.", color = Color(0xFFBDB7D5), fontSize = 13.sp)
 
             Spacer(Modifier.weight(0.12f))
-            VoiceHero(isListening, onMicClick)
+            VoiceHero(isListening, audioLevel, onMicClick)
 
             if (transcript.isNotBlank()) {
                 Spacer(Modifier.height(16.dp))
@@ -233,26 +246,52 @@ private fun BanaSoyleApp(
 }
 
 @Composable
-private fun VoiceHero(isListening: Boolean, onClick: () -> Unit) {
+private fun VoiceHero(isListening: Boolean, audioLevel: Float, onClick: () -> Unit) {
+    val animatedLevel by androidx.compose.animation.core.animateFloatAsState(
+        targetValue = if (isListening) audioLevel else 0f,
+        animationSpec = androidx.compose.animation.core.tween(120),
+        label = "voiceLevel"
+    )
+    val pulse = if (isListening) 1f + animatedLevel * 0.14f else 1f
+
     Box(
-        Modifier.size(380.dp).clickable(onClick = onClick),
+        Modifier
+            .size(290.dp)
+            .clickable(onClick = onClick),
         contentAlignment = Alignment.Center
     ) {
         Box(
-            Modifier.size(330.dp).background(LightPurple, CircleShape),
+            Modifier
+                .size(245.dp)
+                .graphicsLayer {
+                    scaleX = pulse
+                    scaleY = pulse
+                }
+                .background(LightPurple, CircleShape),
             contentAlignment = Alignment.Center
         ) {
             Box(
-                Modifier.size(300.dp).background(Purple, CircleShape),
+                Modifier
+                    .size(215.dp)
+                    .graphicsLayer {
+                        scaleX = 1f + animatedLevel * 0.08f
+                        scaleY = 1f + animatedLevel * 0.08f
+                    }
+                    .background(Purple, CircleShape),
                 contentAlignment = Alignment.Center
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Icon(Icons.Default.Mic, contentDescription = "Mikrofon", tint = Color.White, modifier = Modifier.size(86.dp))
-                    Spacer(Modifier.height(10.dp))
+                    Icon(
+                        Icons.Default.Mic,
+                        contentDescription = "Mikrofon",
+                        tint = Color.White,
+                        modifier = Modifier.size(68.dp)
+                    )
+                    Spacer(Modifier.height(8.dp))
                     Text(
-                        if (isListening) "Dinliyorum..." else "Bas, Konuş",
+                        if (isListening) "Konuş..." else "Bas, Konuş",
                         color = Color.White,
-                        fontSize = 25.sp,
+                        fontSize = 22.sp,
                         fontWeight = FontWeight.Bold
                     )
                 }

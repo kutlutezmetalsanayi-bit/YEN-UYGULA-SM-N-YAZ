@@ -169,9 +169,10 @@ private fun BanaSoyleApp(
     var transcript by remember { mutableStateOf("") }
     var parsedReminder by remember { mutableStateOf<Reminder?>(null) }
     var errorText by remember { mutableStateOf("") }
-    var audioLevel by remember { mutableStateOf(0f) }\n    var reminders by remember { mutableStateOf(ReminderStore.load(context)) }
+    var audioLevel by remember { mutableStateOf(0f) }
 
     val context = androidx.compose.ui.platform.LocalContext.current
+    var reminders by remember { mutableStateOf(ReminderStore.load(context)) }
     val mainActivity = context as? MainActivity
 
     DisposableEffect(mainActivity) {
@@ -189,7 +190,9 @@ private fun BanaSoyleApp(
                     parsedReminder = null
                 } else if (ReminderScheduler.schedule(mainActivity, reminder)) {
                     errorText = ""
-                    ReminderStore.save(mainActivity, reminder)\n                    reminders = ReminderStore.load(mainActivity)\n                    parsedReminder = reminder
+                    ReminderStore.save(mainActivity, reminder)
+                    reminders = ReminderStore.load(mainActivity)
+                    parsedReminder = reminder
                 } else {
                     errorText = "Hatırlatma izni gerekli."
                     parsedReminder = null

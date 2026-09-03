@@ -209,93 +209,219 @@ private fun BanaSoyleApp(
 
     Box(Modifier.fillMaxSize().background(Color(0xFF17133F))) {
         Column(
-            Modifier.fillMaxSize().padding(horizontal = 20.dp),
+            Modifier
+                .fillMaxSize()
+                .padding(horizontal = 20.dp, vertical = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(Modifier.height(22.dp))
             Text("Bana Söyle", color = Color.White, fontSize = 27.sp, fontWeight = FontWeight.Bold)
             Text("Aklına geldiğinde söyle, unutma.", color = Color(0xFFBDB7D5), fontSize = 13.sp)
 
-            Spacer(Modifier.weight(0.12f))
-            VoiceHero(isListening, audioLevel, onMicClick)
+            if (reminders.isNotEmpty()) {
+                Spacer(Modifier.height(16.dp))
+                UpcomingRemindersCard(reminders)
+            }
+
+            Spacer(Modifier.height(20.dp))
+            Box(
+                Modifier
+                    .weight(1f)
+                    .fillMaxWidth(),
+                contentAlignment = Alignment.Center
+            ) {
+                VoiceHero(
+                    isListening = isListening,
+                    audioLevel = audioLevel,
+                    onClick = {
+                        if (!isListening) {
+                            isListening = true
+                            transcript = ""
+                            parsedReminder = null
+                            errorText = ""
+                            onMicClick()
+                        }
+                    }
+                )
+            }
 
             if (transcript.isNotBlank()) {
-                Spacer(Modifier.height(16.dp))
+                Spacer(Modifier.height(10.dp))
                 TranscriptCard(transcript)
             }
             parsedReminder?.let {
-                Spacer(Modifier.height(10.dp))
+                Spacer(Modifier.height(8.dp))
                 ReminderCreatedCard(it)
             }
             if (errorText.isNotBlank()) {
-                Spacer(Modifier.height(10.dp))
+                Spacer(Modifier.height(8.dp))
                 Card(
                     Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(16.dp),
                     colors = CardDefaults.cardColors(containerColor = Color(0x33FF6B6B))
                 ) {
-                    Text(errorText, Modifier.padding(14.dp), color = Color(0xFFFFD0D0), fontSize = 13.sp)
+                    Text(errorText, Modifier.padding(12.dp), color = Color(0xFFFFD0D0), fontSize = 13.sp)
                 }
             }
-            if (transcript.isBlank() && parsedReminder == null && errorText.isBlank()) {
-                Spacer(Modifier.height(12.dp))
+            if (transcript.isBlank() && parsedReminder == null && errorText.isBlank() && reminders.isEmpty()) {
+                Spacer(Modifier.height(8.dp))
                 Text("Örnek: “Yarın saat 11'de dişçim var.”", color = Color(0xFFBDB7D5), fontSize = 13.sp)
             }
-            Spacer(Modifier.weight(0.18f))
-            Text("Yaklaşan hatırlatmalar", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
-            Spacer(Modifier.height(20.dp))
+            Spacer(Modifier.height(8.dp))
         }
     }
 }
 
 @Composable
+private fun UpcomingRemindersCard(reminders: List<Reminder>) {
+    val formatter = DateTimeFormatter.ofPattern("d MMM • HH:mm", Locale("tr", "TR"))
+    Card(
+        Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(18.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White)
+    ) {
+        Column(Modifier.padding(14.dp)) {
+            Text("Yaklaşan hatırlatmalar", color = Purple, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+            Spacer(Modifier.height(8.dp))
+            reminders.take(3).forEach { reminder ->
+                val time = java.time.Instant.ofEpochMilli(reminder.reminderAtMillis)
+                    .atZone(java.time.ZoneId.systemDefault()).toLocalDateTime()
+                Row(Modifier.fillMaxWidth().padding(vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Default.Alarm, contentDescription = null, tint = Purple, modifier = Modifier.size(20.dp))
+                    Spacer(Modifier.width(10.dp))
+                    Text(reminder.title, Modifier.weight(1f), color = TextDark, fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
+                    Text(time.format(formatter), color = Color(0xFF726D79), fontSize = 12.sp)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun TranscriptCard(text: String) {
+    Card(Modifier.fillMaxWidth(), shape = RoundedCornerShape(20.dp)) {
+        Column(Modifier.padding(18.dp)) {
+            Text("Söylediğin", color = Purple, fontWeight = FontWeight.Bold)
+            Spacer(Modifier.height(7.dp))
+            Text("“" + text + "”", color = TextDark, fontSize = 16.sp)
+        }
+    }
+}
+
+@Composable
+private fun ReminderCreatedCard(reminder: Reminder) {
+    val formatter = DateTimeFormatter.ofPattern("d MMMM yyyy • HH:mm", Locale("tr", "TR"))
+    val event = java.time.Instant.ofEpochMilli(reminder.triggerAtMillis)
+        .atZone(java.time.ZoneId.systemDefault()).toLocalDateTime()
+    val reminderAt = java.time.Instant.ofEpochMilli(reminder.reminderAtMillis)
+        .atZone(java.time.ZoneId.systemDefault()).toLocalDateTime()
+
+    Card(Modifier.fillMaxWidth(), shape = RoundedCornerShape(22.dp), colors = CardDefaults.cardColors(containerColor = Color.White)) {
+        Column(Modifier.padding(18.dp)) {
+            Text("✓ Hatırlatma oluşturuldu", color = Color(0xFF159447), fontWeight = FontWeight.Bold, fontSize = 16.sp)
+            Spacer(Modifier.height(10.dp))
+            Text(reminder.title, color = TextDark, fontWeight = FontWeight.Bold, fontSize = 20.sp)
+            Text(event.format(formatter), color = Color(0xFF726D79), fontSize = 14.sp)
+            Spacer(Modifier.height(8.dp))
+            Text("Bildirim: " + reminderAt.format(formatter), color = Purple, fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
+        }
+    }
+}
+
+@Composable
+private fun ExamplesCard() {
+    Card(Modifier.fillMaxWidth(), shape = RoundedCornerShape(20.dp), colors = CardDefaults.cardColors(containerColor = LightPurple)) {
+        Column(Modifier.padding(18.dp)) {
+            Text("Örnekler", color = Purple, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+            Spacer(Modifier.height(8.dp))
+            Text("“Yarın saat 11'de dişçim var.”", color = TextDark, fontSize = 14.sp)
+            Text("“Pazartesi 9'da Ahmet'e teklif göndereceğim.”", color = TextDark, fontSize = 14.sp)
+            Text("“3 Eylül saat 14'te arabayı servise götüreceğim.”", color = TextDark, fontSize = 14.sp)
+        }
+    }
+}
+
+@Composable
+private fun InfoCard(number: String, title: String, body: String) {
+    Card(Modifier.fillMaxWidth(), shape = RoundedCornerShape(18.dp), colors = CardDefaults.cardColors(containerColor = Color.White)) {
+        Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+            Box(Modifier.size(38.dp).background(LightPurple, CircleShape), contentAlignment = Alignment.Center) {
+                Text(number, color = Purple, fontWeight = FontWeight.Bold)
+            }
+            Spacer(Modifier.width(12.dp))
+            Column {
+                Text(title, color = TextDark, fontWeight = FontWeight.Bold)
+                Text(body, color = Color(0xFF726D79), fontSize = 13.sp)
+            }
+        }
+    }
+}
+
+@Composable
+private fun NavItem(label: String, icon: androidx.compose.ui.graphics.vector.ImageVector, selected: Boolean) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(horizontal = 4.dp)) {
+        Icon(icon, contentDescription = label, tint = if (selected) Purple else Color(0xFF8A8490), modifier = Modifier.size(22.dp))
+        Spacer(Modifier.height(3.dp))
+        Text(label, color = if (selected) Purple else Color(0xFF8A8490), fontSize = 10.sp)
+    }
+}@Composable
 private fun VoiceHero(isListening: Boolean, audioLevel: Float, onClick: () -> Unit) {
     val animatedLevel by androidx.compose.animation.core.animateFloatAsState(
         targetValue = if (isListening) audioLevel else 0f,
-        animationSpec = androidx.compose.animation.core.tween(120),
+        animationSpec = androidx.compose.animation.core.tween(90),
         label = "voiceLevel"
     )
-    val pulse = if (isListening) 1f + animatedLevel * 0.14f else 1f
+    val pulse = if (isListening) 1f + animatedLevel * 0.22f else 1f
 
     Box(
         Modifier
-            .size(290.dp)
+            .size(270.dp)
             .clickable(onClick = onClick),
         contentAlignment = Alignment.Center
     ) {
         Box(
             Modifier
-                .size(245.dp)
+                .size(238.dp)
                 .graphicsLayer {
                     scaleX = pulse
                     scaleY = pulse
                 }
-                .background(LightPurple, CircleShape),
+                .background(
+                    if (isListening) Color(0xFFFFE082) else LightPurple,
+                    CircleShape
+                ),
             contentAlignment = Alignment.Center
         ) {
             Box(
                 Modifier
-                    .size(215.dp)
+                    .size(210.dp)
                     .graphicsLayer {
-                        scaleX = 1f + animatedLevel * 0.08f
-                        scaleY = 1f + animatedLevel * 0.08f
+                        scaleX = 1f + animatedLevel * 0.10f
+                        scaleY = 1f + animatedLevel * 0.10f
                     }
-                    .background(if (isListening) Color(0xFFFFB300) else Purple, CircleShape),
+                    .background(
+                        if (isListening) Color(0xFFFFB300) else Purple,
+                        CircleShape
+                    ),
                 contentAlignment = Alignment.Center
             ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.padding(horizontal = 18.dp)
+                ) {
                     Icon(
                         Icons.Default.Mic,
                         contentDescription = "Mikrofon",
                         tint = Color.White,
-                        modifier = Modifier.size(68.dp)
+                        modifier = Modifier.size(62.dp)
                     )
                     Spacer(Modifier.height(8.dp))
                     Text(
                         if (isListening) "Konuşun..." else "Konuşmak için dokun",
                         color = Color.White,
-                        fontSize = 22.sp,
-                        fontWeight = FontWeight.Bold
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold,
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                        maxLines = 2
                     )
                 }
             }

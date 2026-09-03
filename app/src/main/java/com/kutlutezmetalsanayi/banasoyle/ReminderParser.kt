@@ -46,7 +46,11 @@ object ReminderParser {
         if (colon.find()) return LocalTime.of(colon.group(1).toInt(), colon.group(2).toInt())
 
         val hour = Pattern.compile("\\b(saat\\s*)?([01]?\\d|2[0-3])\\s*(?:'?de|'?da|de|da|\\s|$)").matcher(text)
-        if (hour.find()) {\n            var h = hour.group(2).toInt()\n            if (text.contains("aksam") || text.contains("gece")) { if (h in 1..11) h += 12 }\n            return LocalTime.of(h, 0)\n        }
+        if (hour.find()) {
+            var h = hour.group(2).toInt()
+            if (text.contains("aksam") || text.contains("gece")) { if (h in 1..11) h += 12 }
+            return LocalTime.of(h, 0)
+        }
 
         return null
     }
@@ -89,7 +93,9 @@ object ReminderParser {
             .replace(Regex("(?i)yarin|bugun|ertesi gun|saat\\s*\\d{1,2}([:.]\\d{2})?('de|'da|de|da)?"), "")
             .replace(Regex("(?i)\\b\\d{1,2}[./]\\d{1,2}([./]\\d{2,4})?\\b"), "")
             .replace(Regex("(?i)\\b(\\d+)\\s*(dakika|dk|saat)\\s*once\\b"), "")
-            .replace(Regex("(?i)bir saat once|yarim saat once"), "")\n            .replace(Regex("(?i)\\b\\d+\\s*(gun|hafta)\\s*sonra\\b"), "")\n            .replace(Regex("(?i)\\b(sabah|ogle|aksam|gece)\\b"), "")
+            .replace(Regex("(?i)bir saat once|yarim saat once"), "")
+            .replace(Regex("(?i)\\b\\d+\\s*(gun|hafta)\\s*sonra\\b"), "")
+            .replace(Regex("(?i)\\b(sabah|ogle|aksam|gece)\\b"), "")
             .replace(Regex("\\s+"), " ")
             .trim(' ', '.', ',', '!', '?')
         return title.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale("tr", "TR")) else it.toString() }

@@ -138,7 +138,7 @@ enum ReminderParser {
         }
         title = title.replacingOccurrences(of: #"\s+"#, with: " ", options: .regularExpression)
             .trimmingCharacters(in: CharacterSet(charactersIn: " .,!?"))
-        return title.isEmpty ? "Hatırlatma" : title.prefix(1).uppercased() + title.dropFirst()
+        return title.isEmpty ? "Hatırlatma" : title.prefix(1).uppercased() + String(title.dropFirst())
     }
 
     private static func normalize(_ value: String) -> String {

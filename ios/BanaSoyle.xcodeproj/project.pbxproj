@@ -1,0 +1,65 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		A10000010000000000000001 /* BanaSoyleApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000110000000000000001 /* BanaSoyleApp.swift */; };
+		A10000010000000000000002 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000120000000000000002 /* ContentView.swift */; };
+		A10000010000000000000003 /* SpeechRecognizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000130000000000000003 /* SpeechRecognizer.swift */; };
+		A10000010000000000000004 /* Reminder.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000140000000000000004 /* Reminder.swift */; };
+		A10000010000000000000005 /* ReminderParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000150000000000000005 /* ReminderParser.swift */; };
+		A10000010000000000000006 /* ReminderStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000160000000000000006 /* ReminderStore.swift */; };
+		A10000010000000000000007 /* NotificationScheduler.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000170000000000000007 /* NotificationScheduler.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		A10000110000000000000001 /* BanaSoyleApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BanaSoyleApp.swift; sourceTree = "<group>"; };
+		A10000120000000000000002 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		A10000130000000000000003 /* SpeechRecognizer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpeechRecognizer.swift; sourceTree = "<group>"; };
+		A10000140000000000000004 /* Reminder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Reminder.swift; sourceTree = "<group>"; };
+		A10000150000000000000005 /* ReminderParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReminderParser.swift; sourceTree = "<group>"; };
+		A10000160000000000000006 /* ReminderStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReminderStore.swift; sourceTree = "<group>"; };
+		A10000170000000000000007 /* NotificationScheduler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationScheduler.swift; sourceTree = "<group>"; };
+		A10000180000000000000008 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		A10000190000000000000009 /* BanaSoyle.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BanaSoyle.app; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		A10000210000000000000001 /* Frameworks */ = {isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = ( ); runOnlyForDeploymentPostprocessing = 0; };
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		A10000310000000000000001 = {isa = PBXGroup; children = ( A10000110000000000000001, A10000120000000000000002, A10000130000000000000003, A10000140000000000000004, A10000150000000000000005, A10000160000000000000006, A10000170000000000000007, A10000180000000000000008 ); path = BanaSoyle; sourceTree = "<group>"; };
+		A10000310000000000000002 = {isa = PBXGroup; children = ( A10000310000000000000001 ); sourceTree = "<group>"; };
+		A10000310000000000000003 = {isa = PBXGroup; children = ( A10000190000000000000009 ); name = Products; sourceTree = "<group>"; };
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		A10000410000000000000001 = {isa = PBXNativeTarget; buildConfigurationList = A10000610000000000000001; buildPhases = ( A10000210000000000000001, A10000510000000000000001, A10000510000000000000002 ); buildRules = ( ); dependencies = ( ); name = BanaSoyle; productName = BanaSoyle; productReference = A10000190000000000000009; productType = "com.apple.product-type.application"; };
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		A10000510000000000000000 = {isa = PBXProject; attributes = { LastUpgradeCheck = 2700; ORGANIZATIONNAME = "Kutlu Tez Metal Sanayi"; TargetAttributes = { A10000410000000000000001 = { CreatedOnToolsVersion = 27.0; }; }; }; buildConfigurationList = A10000610000000000000000; compatibilityVersion = "Xcode 16.0"; developmentRegion = tr; hasScannedForEncodings = 0; knownRegions = ( tr, en, Base ); mainGroup = A10000310000000000000002; productRefGroup = A10000310000000000000003; projectDirPath = ""; projectRoot = ""; targets = ( A10000410000000000000001 ); };
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		A10000510000000000000002 /* Resources */ = {isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = ( ); runOnlyForDeploymentPostprocessing = 0; };
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		A10000510000000000000001 /* Sources */ = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = ( A10000010000000000000001, A10000010000000000000002, A10000010000000000000003, A10000010000000000000004, A10000010000000000000005, A10000010000000000000006, A10000010000000000000007 ); runOnlyForDeploymentPostprocessing = 0; };
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		A10000710000000000000000 = {isa = XCBuildConfiguration; buildSettings = { ALWAYS_SEARCH_USER_PATHS = NO; CLANG_ENABLE_MODULES = YES; CODE_SIGN_STYLE = Automatic; CURRENT_PROJECT_VERSION = 1; DEVELOPMENT_TEAM = ""; GENERATE_INFOPLIST_FILE = NO; INFOPLIST_FILE = BanaSoyle/Info.plist; IPHONEOS_DEPLOYMENT_TARGET = 17.0; LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks"; PRODUCT_BUNDLE_IDENTIFIER = "com.kutlutezmetalsanayi.banasoyle.ios"; PRODUCT_NAME = "$(TARGET_NAME)"; SWIFT_VERSION = 6.0; TARGETED_DEVICE_FAMILY = "1,2"; };
+		A10000710000000000000001 = {isa = XCBuildConfiguration; buildSettings = { ALWAYS_SEARCH_USER_PATHS = NO; CLANG_ENABLE_MODULES = YES; CODE_SIGN_STYLE = Automatic; CURRENT_PROJECT_VERSION = 1; DEVELOPMENT_TEAM = ""; GENERATE_INFOPLIST_FILE = NO; INFOPLIST_FILE = BanaSoyle/Info.plist; IPHONEOS_DEPLOYMENT_TARGET = 17.0; LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks"; PRODUCT_BUNDLE_IDENTIFIER = "com.kutlutezmetalsanayi.banasoyle.ios"; PRODUCT_NAME = "$(TARGET_NAME)"; SWIFT_VERSION = 6.0; TARGETED_DEVICE_FAMILY = "1,2"; };
+		A10000610000000000000000 = {isa = XCConfigurationList; buildConfigurations = ( A10000710000000000000000 ); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
+		A10000610000000000000001 = {isa = XCConfigurationList; buildConfigurations = ( A10000710000000000000001 ); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
+/* End XCBuildConfiguration section */
+	};
+	rootObject = A10000510000000000000000;
+}
